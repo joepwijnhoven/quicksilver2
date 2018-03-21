@@ -21,6 +21,7 @@ void SimpleEvaluator::prepare() {
     // if attached, prepare the estimator
     if(est != nullptr) est->prepare();
 
+
     // prepare other things here.., if necessary
 
 }
@@ -51,7 +52,8 @@ std::shared_ptr<SimpleGraph> SimpleEvaluator::project(uint32_t projectLabel, boo
         // going forward
         for(uint32_t source = 0; source < in->getNoVertices(); source++) {
             for (auto labelTarget : in->adj[source]) {
-
+                if (projectLabel < labelTarget.first)
+                    break;
                 auto label = labelTarget.first;
                 auto target = labelTarget.second;
 
@@ -141,6 +143,7 @@ std::shared_ptr<SimpleGraph> SimpleEvaluator::evaluate_aux(RPQTree *q) {
 }
 
 cardStat SimpleEvaluator::evaluate(RPQTree *query) {
+
     auto res = evaluate_aux(query);
     return SimpleEvaluator::computeStats(res);
 }

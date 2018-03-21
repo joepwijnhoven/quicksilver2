@@ -109,4 +109,18 @@ void SimpleGraph::readFromContiguousFile(const std::string &fileName) {
 
     graphFile.close();
 
+    for(uint32_t source = 0; source < getNoVertices(); source++) {
+        std::vector<std::vector<std::pair<uint32_t,uint32_t>>>  targetPerLabel;
+        targetPerLabel.resize(getNoLabels());
+        for (auto labelTarget : adj[source]) {
+            targetPerLabel[labelTarget.first].push_back(labelTarget);
+        }
+        std::vector<std::pair<uint32_t,uint32_t>> sortedAdj;
+        for(uint32_t labeltype = 0; labeltype < targetPerLabel.size(); labeltype++) {
+            for(uint32_t target=0; target < targetPerLabel[labeltype].size(); target++) {
+                sortedAdj.push_back(targetPerLabel[labeltype][target]);
+            }
+        }
+        adj[source] = sortedAdj;
+    }
 }
