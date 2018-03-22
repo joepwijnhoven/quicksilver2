@@ -65,7 +65,8 @@ std::shared_ptr<SimpleGraph> SimpleEvaluator::project(uint32_t projectLabel, boo
         // going backward
         for(uint32_t source = 0; source < in->getNoVertices(); source++) {
             for (auto labelTarget : in->reverse_adj[source]) {
-
+                if (projectLabel < labelTarget.first)
+                    break;
                 auto label = labelTarget.first;
                 auto target = labelTarget.second;
 

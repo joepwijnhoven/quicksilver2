@@ -122,5 +122,18 @@ void SimpleGraph::readFromContiguousFile(const std::string &fileName) {
             }
         }
         adj[source] = sortedAdj;
+
+        std::vector<std::vector<std::pair<uint32_t,uint32_t>>>  reversetargetPerLabel;
+        reversetargetPerLabel.resize(getNoLabels());
+        for (auto labelTarget : reverse_adj[source]) {
+            reversetargetPerLabel[labelTarget.first].push_back(labelTarget);
+        }
+        std::vector<std::pair<uint32_t,uint32_t>> reversesortedAdj;
+        for(uint32_t labeltype = 0; labeltype < reversetargetPerLabel.size(); labeltype++) {
+            for(uint32_t target=0; target < reversetargetPerLabel[labeltype].size(); target++) {
+                reversesortedAdj.push_back(reversetargetPerLabel[labeltype][target]);
+            }
+        }
+        reverse_adj[source] = reversesortedAdj;
     }
 }
