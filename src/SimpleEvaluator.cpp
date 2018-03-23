@@ -43,35 +43,35 @@ cardStat SimpleEvaluator::computeStats(std::shared_ptr<SimpleGraph> &g) {
     return stats;
 }
 
-std::shared_ptr<SimpleGraph> SimpleEvaluator::project(uint32_t projectLabel, bool inverse, std::shared_ptr<SimpleGraph> &in) {
+std::shared_ptr<SimpleGraph> SimpleEvaluator::project(uint32_t projectLabel, bool inverse, std::shared_ptr<SimpleGraph> &in, std::vector<std::vector<uint32_t>>  uniqueIN, std::vector<std::vector<uint32_t>>  uniqueOUT) {
 
     auto out = std::make_shared<SimpleGraph>(in->getNoVertices());
     out->setNoLabels(in->getNoLabels());
 
     if(!inverse) {
         // going forward
-        for(uint32_t source = 0; source < in->getNoVertices(); source++) {
-            for (auto labelTarget : in->adj[source]) {
+        for(uint32_t source = 0; source < uniqueIN[projectLabel].size(); source++) {
+            for (auto labelTarget : in->adj[uniqueIN[projectLabel][source]]) {
                 if (projectLabel < labelTarget.first)
                     break;
                 auto label = labelTarget.first;
                 auto target = labelTarget.second;
 
                 if (label == projectLabel)
-                    out->addEdge(source, target, label);
+                    out->addEdge(uniqueIN[projectLabel][source], target, label);
             }
         }
     } else {
         // going backward
-        for(uint32_t source = 0; source < in->getNoVertices(); source++) {
-            for (auto labelTarget : in->reverse_adj[source]) {
+        for(uint32_t source = 0; source < uniqueOUT[projectLabel].size(); source++) {
+            for (auto labelTarget : in->reverse_adj[uniqueOUT[projectLabel][source]]) {
                 if (projectLabel < labelTarget.first)
                     break;
                 auto label = labelTarget.first;
                 auto target = labelTarget.second;
 
                 if (label == projectLabel)
-                    out->addEdge(source, target, label);
+                    out->addEdge(uniqueOUT[projectLabel][source], target, label);
             }
         }
     }
@@ -126,7 +126,7 @@ std::shared_ptr<SimpleGraph> SimpleEvaluator::evaluate_aux(RPQTree *q) {
             return nullptr;
         }
 
-        return SimpleEvaluator::project(label, inverse, graph);
+        return SimpleEvaluator::project(label, inverse, graph, est->uniqueIN, est->uniqueOUT);
     }
 
     if(q->isConcat()) {
@@ -143,8 +143,50 @@ std::shared_ptr<SimpleGraph> SimpleEvaluator::evaluate_aux(RPQTree *q) {
     return nullptr;
 }
 
-cardStat SimpleEvaluator::evaluate(RPQTree *query) {
+int SimpleEvaluator::minimalLengthQuery(RPQTree *query, int length) {
+    if(query->isLeaf()) {
+        queryarray.push_back(query->data);
+        return length;
+    } else {
+        if(length <= 3) {
+            auto left = minimalLengthQuery(query->left, length++);
+            auto right = minimalLengthQuery(query->left, length++);
+            return left + right;
+        }
+        return 100;
+    }
+}
 
-    auto res = evaluate_aux(query);
-    return SimpleEvaluator::computeStats(res);
+cardStat SimpleEvaluator::evaluateFaster(std::vector<std::string> queryarray){
+    std::regex directLabel (R"((\d+)\+)");
+    std::regex inverseLabel (R"((\d+)\-)");
+
+    std::smatch matches;
+    uint32_t label;
+    bool inverse;
+
+    if(std::regex_search(queryarray[0], matches, directLabel)) {
+        label = (uint32_t) std::stoul(matches[1]);
+        inverse = false;
+    } else if(std::regex_search(queryarray[0], matches, inverseLabel)) {
+        label = (uint32_t) std::stoul(matches[1]);
+        inverse = true;
+    }
+//
+//    auto paths = est->array.size();
+//    auto ingoing = est->uniqueIN
+//    for(int i=1; i < queryarray.size(); i++) {
+//        label queryarray[i]
+//    }
+}
+
+cardStat SimpleEvaluator::evaluate(RPQTree *query) {
+//    if(minimalLengthQuery(query, 1) <= 3) {
+//        evaluateFaster(queryarray);
+//        //return SimpleEvaluator::computeStats(queryarray);
+//    } else {
+        auto res = evaluate_aux(query);
+        return SimpleEvaluator::computeStats(res);
+//    }
+
 }
