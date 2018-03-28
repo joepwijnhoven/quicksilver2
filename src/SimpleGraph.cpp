@@ -70,8 +70,9 @@ void SimpleGraph::addEdge(uint32_t from, uint32_t to, uint32_t edgeLabel) {
         throw std::runtime_error(std::string("Edge data out of bounds: ") +
                                          "(" + std::to_string(from) + "," + std::to_string(to) + "," +
                                          std::to_string(edgeLabel) + ")");
-    adj[from].emplace_back(std::make_pair(edgeLabel, to));
-    reverse_adj[to].emplace_back(std::make_pair(edgeLabel, from));
+//    adj[from].emplace_back(std::make_pair(edgeLabel, to));
+//    reverse_adj[to].emplace_back(std::make_pair(edgeLabel, from));
+    edge_pairs[edgeLabel].emplace_back(std::make_pair(from, to));
 }
 
 void SimpleGraph::readFromContiguousFile(const std::string &fileName) {
@@ -109,31 +110,31 @@ void SimpleGraph::readFromContiguousFile(const std::string &fileName) {
 
     graphFile.close();
 
-    for(uint32_t source = 0; source < getNoVertices(); source++) {
-        std::vector<std::vector<std::pair<uint32_t,uint32_t>>>  targetPerLabel;
-        targetPerLabel.resize(getNoLabels());
-        for (auto labelTarget : adj[source]) {
-            targetPerLabel[labelTarget.first].push_back(labelTarget);
-        }
-        std::vector<std::pair<uint32_t,uint32_t>> sortedAdj;
-        for(uint32_t labeltype = 0; labeltype < targetPerLabel.size(); labeltype++) {
-            for(uint32_t target=0; target < targetPerLabel[labeltype].size(); target++) {
-                sortedAdj.push_back(targetPerLabel[labeltype][target]);
-            }
-        }
-        adj[source] = sortedAdj;
-
-        std::vector<std::vector<std::pair<uint32_t,uint32_t>>>  reversetargetPerLabel;
-        reversetargetPerLabel.resize(getNoLabels());
-        for (auto labelTarget : reverse_adj[source]) {
-            reversetargetPerLabel[labelTarget.first].push_back(labelTarget);
-        }
-        std::vector<std::pair<uint32_t,uint32_t>> reversesortedAdj;
-        for(uint32_t labeltype = 0; labeltype < reversetargetPerLabel.size(); labeltype++) {
-            for(uint32_t target=0; target < reversetargetPerLabel[labeltype].size(); target++) {
-                reversesortedAdj.push_back(reversetargetPerLabel[labeltype][target]);
-            }
-        }
-        reverse_adj[source] = reversesortedAdj;
-    }
+//    for(uint32_t source = 0; source < getNoVertices(); source++) {
+//        std::vector<std::vector<std::pair<uint32_t,uint32_t>>>  targetPerLabel;
+//        targetPerLabel.resize(getNoLabels());
+//        for (auto labelTarget : adj[source]) {
+//            targetPerLabel[labelTarget.first].push_back(labelTarget);
+//        }
+//        std::vector<std::pair<uint32_t,uint32_t>> sortedAdj;
+//        for(uint32_t labeltype = 0; labeltype < targetPerLabel.size(); labeltype++) {
+//            for(uint32_t target=0; target < targetPerLabel[labeltype].size(); target++) {
+//                sortedAdj.push_back(targetPerLabel[labeltype][target]);
+//            }
+//        }
+//        adj[source] = sortedAdj;
+//
+//        std::vector<std::vector<std::pair<uint32_t,uint32_t>>>  reversetargetPerLabel;
+//        reversetargetPerLabel.resize(getNoLabels());
+//        for (auto labelTarget : reverse_adj[source]) {
+//            reversetargetPerLabel[labelTarget.first].push_back(labelTarget);
+//        }
+//        std::vector<std::pair<uint32_t,uint32_t>> reversesortedAdj;
+//        for(uint32_t labeltype = 0; labeltype < reversetargetPerLabel.size(); labeltype++) {
+//            for(uint32_t target=0; target < reversetargetPerLabel[labeltype].size(); target++) {
+//                reversesortedAdj.push_back(reversetargetPerLabel[labeltype][target]);
+//            }
+//        }
+//        reverse_adj[source] = reversesortedAdj;
+//    }
 }
