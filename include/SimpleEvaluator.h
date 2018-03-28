@@ -25,7 +25,7 @@ public:
 
     void prepare() override ;
     cardStat evaluate(RPQTree *query) override ;
-    cardStat evaluateFaster(std::vector<std::string> queryarray);
+    cardStat evaluateFaster(RPQTree *query);
     int minimalLengthQuery(RPQTree *query, int length);
     void attachEstimator(std::shared_ptr<SimpleEstimator> &e);
 

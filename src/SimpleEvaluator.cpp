@@ -157,27 +157,37 @@ int SimpleEvaluator::minimalLengthQuery(RPQTree *query, int length) {
     }
 }
 
-cardStat SimpleEvaluator::evaluateFaster(std::vector<std::string> queryarray){
-    std::regex directLabel (R"((\d+)\+)");
-    std::regex inverseLabel (R"((\d+)\-)");
-
-    std::smatch matches;
-    uint32_t label;
-    bool inverse;
-
-    if(std::regex_search(queryarray[0], matches, directLabel)) {
-        label = (uint32_t) std::stoul(matches[1]);
-        inverse = false;
-    } else if(std::regex_search(queryarray[0], matches, inverseLabel)) {
-        label = (uint32_t) std::stoul(matches[1]);
-        inverse = true;
-    }
+//cardStat SimpleEvaluator::evaluateFaster(std::vector<std::string> queryarray){
+//    std::regex directLabel (R"((\d+)\+)");
+//    std::regex inverseLabel (R"((\d+)\-)");
+//
+//    std::smatch matches;
+//    uint32_t label;
+//    bool inverse;
+//
+//    if(std::regex_search(queryarray[0], matches, directLabel)) {
+//        label = (uint32_t) std::stoul(matches[1]);
+//        inverse = false;
+//    } else if(std::regex_search(queryarray[0], matches, inverseLabel)) {
+//        label = (uint32_t) std::stoul(matches[1]);
+//        inverse = true;
+//    }
 //
 //    auto paths = est->array.size();
 //    auto ingoing = est->uniqueIN
 //    for(int i=1; i < queryarray.size(); i++) {
 //        label queryarray[i]
 //    }
+//}
+
+cardStat SimpleEvaluator::evaluateFaster(RPQTree *query) {
+    if(query->isLeaf()) {
+
+
+    } else {
+        auto right = evaluateFaster(query->right);
+        auto left = evaluateFaster(query->left);
+    }
 }
 
 cardStat SimpleEvaluator::evaluate(RPQTree *query) {
@@ -185,6 +195,8 @@ cardStat SimpleEvaluator::evaluate(RPQTree *query) {
 //        evaluateFaster(queryarray);
 //        //return SimpleEvaluator::computeStats(queryarray);
 //    } else {
+
+
         auto res = evaluate_aux(query);
         return SimpleEvaluator::computeStats(res);
 //    }
