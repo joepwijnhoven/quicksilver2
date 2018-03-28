@@ -25,7 +25,7 @@ public:
 
     void prepare() override ;
     cardStat evaluate(RPQTree *query) override ;
-    cardStat evaluateFaster(RPQTree *query);
+    std::vector<std::pair<uint32_t,uint32_t>> evaluateFaster(RPQTree *query);
     int minimalLengthQuery(RPQTree *query, int length);
     void attachEstimator(std::shared_ptr<SimpleEstimator> &e);
 
@@ -33,7 +33,7 @@ public:
     static std::shared_ptr<SimpleGraph> project(uint32_t label, bool inverse, std::shared_ptr<SimpleGraph> &g, std::vector<std::vector<uint32_t>>  uniqueIN, std::vector<std::vector<uint32_t>>  uniqueOUT);
     static std::shared_ptr<SimpleGraph> join(std::shared_ptr<SimpleGraph> &left, std::shared_ptr<SimpleGraph> &right);
 
-    static cardStat computeStats(std::shared_ptr<SimpleGraph> &g);
+    static cardStat computeStats(std::vector<std::pair<uint32_t,uint32_t>> pairs);
 
 };
 

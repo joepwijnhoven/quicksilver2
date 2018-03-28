@@ -34,8 +34,8 @@ void SimpleEstimator::prepare() {
             auto target = labelTarget.second;
             tabels[label].emplace_back(std::make_tuple(source, target));
             array[label] += 1;
-            AttributeCount[label].push_back({});
-            AttributeCount[label].push_back();
+//            AttributeCount[label].push_back({});
+//            AttributeCount[label].push_back();
 
             if(!(std::find(std::begin(uniqueIN[label]), std::end(uniqueIN[label]), source) != std::end(uniqueIN[label]))) {
                 uniqueIN[label].push_back(source);

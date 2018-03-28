@@ -26,20 +26,40 @@ void SimpleEvaluator::prepare() {
 
 }
 
-cardStat SimpleEvaluator::computeStats(std::shared_ptr<SimpleGraph> &g) {
+//cardStat SimpleEvaluator::computeStats(std::shared_ptr<SimpleGraph> &g) {
+//
+//    cardStat stats {};
+//
+//    for(int source = 0; source < g->getNoVertices(); source++) {
+//        if(!g->adj[source].empty()) stats.noOut++;
+//    }
+//
+//    stats.noPaths = g->getNoDistinctEdges();
+//
+//    for(int target = 0; target < g->getNoVertices(); target++) {
+//        if(!g->reverse_adj[target].empty()) stats.noIn++;
+//    }
+//
+//    return stats;
+//}
 
+cardStat SimpleEvaluator::computeStats(std::vector<std::pair<uint32_t,uint32_t>> pairs) {
     cardStat stats {};
-
-    for(int source = 0; source < g->getNoVertices(); source++) {
-        if(!g->adj[source].empty()) stats.noOut++;
+    std::vector<uint32_t> uniquein;
+    std::vector<uint32_t> uniqueout;
+    for(int i =0; i < pairs.size(); i++) {
+        uniquein.push_back(pairs[i].first);
+        uniqueout.push_back(pairs[i].second);
     }
 
-    stats.noPaths = g->getNoDistinctEdges();
+    sort(uniquein.begin(), uniquein.end());
+    uniquein.erase(unique(uniquein.begin(), uniquein.end()), uniquein.end());
+    sort(uniqueout.begin(), uniqueout.end());
+    uniqueout.erase(unique(uniqueout.begin(), uniqueout.end()), uniqueout.end());
 
-    for(int target = 0; target < g->getNoVertices(); target++) {
-        if(!g->reverse_adj[target].empty()) stats.noIn++;
-    }
-
+    stats.noPaths = pairs.size();
+    stats.noIn = uniqueout.size();
+    stats.noOut = uniquein.size();
     return stats;
 }
 
@@ -180,13 +200,35 @@ int SimpleEvaluator::minimalLengthQuery(RPQTree *query, int length) {
 //    }
 //}
 
-cardStat SimpleEvaluator::evaluateFaster(RPQTree *query) {
+std::vector<std::pair<uint32_t,uint32_t>> SimpleEvaluator::evaluateFaster(RPQTree *query) {
     if(query->isLeaf()) {
+        std::regex directLabel (R"((\d+)\+)");
+        std::regex inverseLabel (R"((\d+)\-)");
 
+        std::smatch matches;
+        uint32_t label;
 
+        if(std::regex_search(query->data, matches, directLabel)) {
+            label = (uint32_t) std::stoul(matches[1]);
+            return graph->edge_pairs[label];
+        } else if(std::regex_search(query->data, matches, inverseLabel)) {
+            label = (uint32_t) std::stoul(matches[1]);
+            return graph->edge_pairs_reverse[label];
+        } else {
+            return {};
+        }
     } else {
         auto right = evaluateFaster(query->right);
         auto left = evaluateFaster(query->left);
+        std::vector<std::pair<uint32_t,uint32_t>> join;
+        for(int i=0; i < left.size(); i++) {
+            for(int j =0; j < right.size(); j++) {
+                if(left[i].second == right[j].first) {
+                    join.emplace_back(std::make_pair(left[i].first, right[i].second));
+                }
+            }
+        }
+        return join;
     }
 }
 
@@ -195,10 +237,10 @@ cardStat SimpleEvaluator::evaluate(RPQTree *query) {
 //        evaluateFaster(queryarray);
 //        //return SimpleEvaluator::computeStats(queryarray);
 //    } else {
+        auto joins = evaluateFaster(query);
 
-
-        auto res = evaluate_aux(query);
-        return SimpleEvaluator::computeStats(res);
+        //auto res = evaluate_aux(query);
+        return SimpleEvaluator::computeStats(joins);
 //    }
 
 }
