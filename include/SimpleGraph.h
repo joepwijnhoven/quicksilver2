@@ -19,6 +19,7 @@ public:
     std::vector<std::vector<std::pair<uint32_t,uint32_t>>> reverse_adj; // vertex adjacency list
     std::vector<std::vector<std::pair<uint32_t,uint32_t>>> edge_pairs; // edge list with pairs of nodes
     std::vector<std::vector<std::pair<uint32_t,uint32_t>>> edge_pairs_reverse; // edge list with pairs of nodes
+    std::vector<std::string> array;
 
 
 protected:
