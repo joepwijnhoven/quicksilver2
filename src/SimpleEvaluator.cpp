@@ -218,13 +218,20 @@ std::vector<std::pair<uint32_t,uint32_t>> SimpleEvaluator::evaluateFaster(RPQTre
             return {};
         }
     } else {
-        auto right = evaluateFaster(query->right);
         auto left = evaluateFaster(query->left);
+        auto right = evaluateFaster(query->right);
         std::vector<std::pair<uint32_t,uint32_t>> join;
+
+        std::vector<std::string> array;
+
         for(int i=0; i < left.size(); i++) {
-            for(int j =0; j < right.size(); j++) {
+            for(int j=0; j < right.size(); j++) {
+
                 if(left[i].second == right[j].first) {
-                    join.emplace_back(std::make_pair(left[i].first, right[i].second));
+                    if (!(std::find(std::begin(array), std::end(array), std::to_string(left[i].first) + "-" + std::to_string(right[j].second)) != std::end(array))) {
+                        array.emplace_back(std::to_string(left[i].first) + "-" + std::to_string(right[j].second));
+                        join.emplace_back(std::make_pair(left[i].first, right[j].second));
+                    }
                 }
             }
         }
@@ -233,14 +240,6 @@ std::vector<std::pair<uint32_t,uint32_t>> SimpleEvaluator::evaluateFaster(RPQTre
 }
 
 cardStat SimpleEvaluator::evaluate(RPQTree *query) {
-//    if(minimalLengthQuery(query, 1) <= 3) {
-//        evaluateFaster(queryarray);
-//        //return SimpleEvaluator::computeStats(queryarray);
-//    } else {
-        auto joins = evaluateFaster(query);
-
-        //auto res = evaluate_aux(query);
-        return SimpleEvaluator::computeStats(joins);
-//    }
-
+    auto joins = evaluateFaster(query);
+    return SimpleEvaluator::computeStats(joins);
 }
