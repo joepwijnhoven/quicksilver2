@@ -33,7 +33,7 @@ public:
     static std::shared_ptr<SimpleGraph> project(uint32_t label, bool inverse, std::shared_ptr<SimpleGraph> &g, std::vector<std::vector<uint32_t>>  uniqueIN, std::vector<std::vector<uint32_t>>  uniqueOUT);
     static std::shared_ptr<SimpleGraph> join(std::shared_ptr<SimpleGraph> &left, std::shared_ptr<SimpleGraph> &right);
 
-    //static cardStat computeStats(std::shared_ptr<SimpleGraph> &g);
+    std::vector<std::string> TreeToString(RPQTree *q);
     static cardStat computeStats(std::vector<std::pair<uint32_t,uint32_t>> pairs);
 
 };

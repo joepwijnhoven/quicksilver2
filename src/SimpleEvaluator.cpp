@@ -239,7 +239,24 @@ std::vector<std::pair<uint32_t,uint32_t>> SimpleEvaluator::evaluateFaster(RPQTre
     }
 }
 
+std::vector<std::string> SimpleEvaluator::TreeToString(RPQTree *query) {
+    if(query->isLeaf()) {
+        std::vector<std::string> array;
+        array.push_back(query->data);
+        return array;
+    } else {
+        auto left = TreeToString(query->left);
+        auto right = TreeToString(query->right);
+        std::vector<std::string> results;
+        results.reserve(left.size() + right.size());
+        results.insert(results.end(), left.begin(), left.end());
+        results.insert(results.end(), right.begin(), right.end());
+        return results;
+    }
+}
+
 cardStat SimpleEvaluator::evaluate(RPQTree *query) {
+    auto q = TreeToString(query);
     auto joins = evaluateFaster(query);
     return SimpleEvaluator::computeStats(joins);
 }

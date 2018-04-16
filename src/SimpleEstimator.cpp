@@ -9,42 +9,29 @@ SimpleEstimator::SimpleEstimator(std::shared_ptr<SimpleGraph> &g){
 
     // works only with SimpleGraph
     graph = g;
-    nr_label_occurences.resize(graph.get()->getNoLabels());
-    array.resize(graph.get()->getNoLabels());
-    tabels.resize(graph.get()->getNoLabels());
+    totalAmount.resize(graph.get()->getNoLabels());
     uniqueIN.resize(graph.get()->getNoLabels());
     uniqueOUT.resize(graph.get()->getNoLabels());
-    AttributeCountIN.resize(graph.get()->getNoLabels());
-    AttributeCountOUT.resize(graph.get()->getNoLabels());
-    thresholdsIN.resize(graph.get()->getNoLabels());
-    thresholdsOUT.resize(graph.get()->getNoLabels());
-    sampleSize = ((graph.get()->getNoEdges() * 2) / graph->getNoLabels()) / 5;
 }
 
 void SimpleEstimator::prepare() {
 
     // do your prep here
-    for(int k =0; k< array.size(); k++){
-        array[k] = 0;
+    for(int k =0; k< totalAmount.size(); k++){
+        totalAmount[k] = 0;
     }
 
-//    for(uint32_t source = 0; source < graph->getNoVertices(); source++) {
-//        for (auto labelTarget : graph->adj[source]) {
-//            auto label = labelTarget.first;
-//            auto target = labelTarget.second;
-//            tabels[label].emplace_back(std::make_tuple(source, target));
-//            array[label] += 1;
-////            AttributeCount[label].push_back({});
-////            AttributeCount[label].push_back();
-//
-//            if(!(std::find(std::begin(uniqueIN[label]), std::end(uniqueIN[label]), source) != std::end(uniqueIN[label]))) {
-//                uniqueIN[label].push_back(source);
-//            }
-//            if(!(std::find(std::begin(uniqueOUT[label]), std::end(uniqueOUT[label]), target) != std::end(uniqueOUT[label]))) {
-//                uniqueOUT[label].push_back(target);
-//            }
-//        }
-//    }
+    for(int label = 0; label < graph->getNoLabels(); label++) {
+        for(int i = 0; i < graph->edge_pairs[label].size(); i++) {
+            totalAmount[label] += 1;
+            if(!(std::find(std::begin(uniqueIN[label]), std::end(uniqueIN[label]), graph->edge_pairs[label][i].first) != std::end(uniqueIN[label]))) {
+                uniqueIN[label].push_back(graph->edge_pairs[label][i].first);
+            }
+            if(!(std::find(std::begin(uniqueOUT[label]), std::end(uniqueOUT[label]), graph->edge_pairs[label][i].second) != std::end(uniqueOUT[label]))) {
+                uniqueOUT[label].push_back(graph->edge_pairs[label][i].second);
+            }
+        }
+    }
 }
 std::vector<int> SimpleEstimator::estimatePath(RPQTree *q) {
     if(q->isLeaf()){
@@ -53,11 +40,11 @@ std::vector<int> SimpleEstimator::estimatePath(RPQTree *q) {
         std::regex inverseLabel (R"((\d+)\-)");
         if(std::regex_search(q->data, matches, directLabel)) {
             auto label = (uint32_t) std::stoul(matches[1]);
-            std::vector<int> test {static_cast<int>(uniqueIN[label].size()), static_cast<int>(uniqueOUT[label].size()), array[label], label, 1};
+            std::vector<int> test {static_cast<int>(uniqueIN[label].size()), static_cast<int>(uniqueOUT[label].size()), totalAmount[label], label, 1};
             return test;
         } else if(std::regex_search(q->data, matches, inverseLabel)) {
             auto label = (uint32_t) std::stoul(matches[1]);
-            std::vector<int> test {static_cast<int>(uniqueOUT[label].size()), static_cast<int>(uniqueIN[label].size()), array[label], label, 0};
+            std::vector<int> test {static_cast<int>(uniqueOUT[label].size()), static_cast<int>(uniqueIN[label].size()), totalAmount[label], label, 0};
             return test;
         } else {
             std::cerr << "Label parsing failed!" << std::endl;
