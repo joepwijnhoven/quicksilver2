@@ -60,7 +60,7 @@ std::vector<std::pair<uint32_t,uint32_t>> SimpleEvaluator::evaluateFaster(std::v
             std::sort(left.begin(),left.end());
 //            InsertIntoCache(q + query[i], left);
 //        }
-
+//        q = q + query[i]
     }
     return left;
 }
