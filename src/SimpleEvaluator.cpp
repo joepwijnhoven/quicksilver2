@@ -46,54 +46,81 @@ cardStat SimpleEvaluator::computeStats(std::vector<std::pair<uint32_t,uint32_t>>
     return stats;
 }
 
-std::vector<std::pair<uint32_t,uint32_t>> SimpleEvaluator::evaluateFaster(RPQTree *query) {
-    if(query->isLeaf()) {
-        std::regex directLabel (R"((\d+)\+)");
-        std::regex inverseLabel (R"((\d+)\-)");
+std::vector<std::pair<uint32_t,uint32_t>> SimpleEvaluator::evaluateFaster(std::vector<std::string> query) {
+    auto left = edges(query[0], false);
+    for(int i = 1; i < query.size(); i++) {
+        left = join(left, edges(query[i], true));
+    }
+    return left;
+}
 
-        std::smatch matches;
-        uint32_t label;
+std::vector<std::pair<uint32_t,uint32_t>> SimpleEvaluator::edges(std::string sub_query, bool right) {
+    std::regex directLabel(R"((\d+)\+)");
+    std::regex inverseLabel(R"((\d+)\-)");
+    std::smatch matches;
 
-        if(std::regex_search(query->data, matches, directLabel)) {
-            label = (uint32_t) std::stoul(matches[1]);
+    if (std::regex_search(sub_query, matches, directLabel)) {
+        auto label = (uint32_t) std::stoul(matches[1]);
+        if (right) {
             return graph->edge_pairs[label];
-        } else if(std::regex_search(query->data, matches, inverseLabel)) {
-            label = (uint32_t) std::stoul(matches[1]);
+        } else {
+            return graph-> edge_pairs_reverse[label];
+        }
+    } else if (std::regex_search(sub_query, matches, inverseLabel)) {
+        auto label = (uint32_t) std::stoul(matches[1]);
+        if (right) {
             return graph->edge_pairs_reverse[label];
         } else {
-            return {};
+            return graph-> edge_pairs[label];
         }
-    } else {
-        auto left = evaluateFaster(query->left);
-        auto right = evaluateFaster(query->right);
-        std::vector<std::pair<uint32_t,uint32_t>> join;
+    }
+}
 
-        std::vector<std::string> array;
+std::vector<std::pair<uint32_t,uint32_t>> SimpleEvaluator::join(std::vector<std::pair<uint32_t,uint32_t>> left, std::vector<std::pair<uint32_t,uint32_t>> right) {
+    std::vector<std::pair<uint32_t,uint32_t>> join;
 
-        int left_key = 0;
-        int right_key = 0;
+    std::vector<std::string> array;
 
-        while(left_key != left.size() && right_key != right.size()) {
-            if (left[left_key].second == right[right_key].first) {
-                if (!(std::find(std::begin(array), std::end(array),
-                                std::to_string(left[left_key].first) + "-" + std::to_string(right[left_key].second)) !=
-                      std::end(array))) {
-                    array.emplace_back(std::to_string(left[left_key].first) + "-" + std::to_string(right[left_key].second));
-                    join.emplace_back(std::make_pair(left[left_key].first, right[right_key].second));
-                }
-                left_key++;
-                right_key++;
-            } else if(left[left_key].second < right[right_key].first) {
-                left_key++;
-            }  else {
-                right_key++;
+    int left_key = 0;
+    int right_key = 0;
+
+    while(left_key != left.size() && right_key != right.size()) {
+        if (left[left_key].second == right[right_key].first) {
+            if (!(std::find(std::begin(array), std::end(array),
+                            std::to_string(left[left_key].first) + "-" + std::to_string(right[left_key].second)) !=
+                  std::end(array))) {
+                array.emplace_back(std::to_string(left[left_key].first) + "-" + std::to_string(right[left_key].second));
+                join.emplace_back(std::make_pair(left[left_key].first, right[right_key].second));
             }
+            left_key++;
+            right_key++;
+        } else if(left[left_key].second < right[right_key].first) {
+            left_key++;
+        }  else {
+            right_key++;
         }
-        return join;
+    }
+    return join;
+}
+
+std::vector<std::string> SimpleEvaluator::TreeToString(RPQTree *query) {
+    if(query->isLeaf()) {
+        std::vector<std::string> array;
+        array.push_back(query->data);
+        return array;
+    } else {
+        auto left = TreeToString(query->left);
+        auto right = TreeToString(query->right);
+        std::vector<std::string> results;
+        results.reserve(left.size() + right.size());
+        results.insert(results.end(), left.begin(), left.end());
+        results.insert(results.end(), right.begin(), right.end());
+        return results;
     }
 }
 
 cardStat SimpleEvaluator::evaluate(RPQTree *query) {
-    auto joins = evaluateFaster(query);
+    auto q = TreeToString(query);
+    auto joins = evaluateFaster(q);
     return SimpleEvaluator::computeStats(joins);
 }

@@ -25,15 +25,16 @@ public:
 
     void prepare() override ;
     cardStat evaluate(RPQTree *query) override ;
-    std::vector<std::pair<uint32_t,uint32_t>> evaluateFaster(RPQTree *query);
+    std::vector<std::pair<uint32_t,uint32_t>> evaluateFaster(std::vector<std::string> query);
+    std::vector<std::pair<uint32_t,uint32_t>> join(std::vector<std::pair<uint32_t,uint32_t>> left, std::vector<std::pair<uint32_t,uint32_t>> right);
+    std::vector<std::pair<uint32_t,uint32_t>> edges(std::string sub_query, bool right);
     int minimalLengthQuery(RPQTree *query, int length);
     void attachEstimator(std::shared_ptr<SimpleEstimator> &e);
 
     std::shared_ptr<SimpleGraph> evaluate_aux(RPQTree *q);
     static std::shared_ptr<SimpleGraph> project(uint32_t label, bool inverse, std::shared_ptr<SimpleGraph> &g, std::vector<std::vector<uint32_t>>  uniqueIN, std::vector<std::vector<uint32_t>>  uniqueOUT);
-    static std::shared_ptr<SimpleGraph> join(std::shared_ptr<SimpleGraph> &left, std::shared_ptr<SimpleGraph> &right);
 
-    //static cardStat computeStats(std::shared_ptr<SimpleGraph> &g);
+    std::vector<std::string> TreeToString(RPQTree *q);
     static cardStat computeStats(std::vector<std::pair<uint32_t,uint32_t>> pairs);
 
 };
