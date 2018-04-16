@@ -28,23 +28,23 @@ void SimpleEstimator::prepare() {
         array[k] = 0;
     }
 
-    for(uint32_t source = 0; source < graph->getNoVertices(); source++) {
-        for (auto labelTarget : graph->adj[source]) {
-            auto label = labelTarget.first;
-            auto target = labelTarget.second;
-            tabels[label].emplace_back(std::make_tuple(source, target));
-            array[label] += 1;
-//            AttributeCount[label].push_back({});
-//            AttributeCount[label].push_back();
-
-            if(!(std::find(std::begin(uniqueIN[label]), std::end(uniqueIN[label]), source) != std::end(uniqueIN[label]))) {
-                uniqueIN[label].push_back(source);
-            }
-            if(!(std::find(std::begin(uniqueOUT[label]), std::end(uniqueOUT[label]), target) != std::end(uniqueOUT[label]))) {
-                uniqueOUT[label].push_back(target);
-            }
-        }
-    }
+//    for(uint32_t source = 0; source < graph->getNoVertices(); source++) {
+//        for (auto labelTarget : graph->adj[source]) {
+//            auto label = labelTarget.first;
+//            auto target = labelTarget.second;
+//            tabels[label].emplace_back(std::make_tuple(source, target));
+//            array[label] += 1;
+////            AttributeCount[label].push_back({});
+////            AttributeCount[label].push_back();
+//
+//            if(!(std::find(std::begin(uniqueIN[label]), std::end(uniqueIN[label]), source) != std::end(uniqueIN[label]))) {
+//                uniqueIN[label].push_back(source);
+//            }
+//            if(!(std::find(std::begin(uniqueOUT[label]), std::end(uniqueOUT[label]), target) != std::end(uniqueOUT[label]))) {
+//                uniqueOUT[label].push_back(target);
+//            }
+//        }
+//    }
 }
 std::vector<int> SimpleEstimator::estimatePath(RPQTree *q) {
     if(q->isLeaf()){

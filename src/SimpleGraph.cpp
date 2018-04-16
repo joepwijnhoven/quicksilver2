@@ -119,31 +119,11 @@ void SimpleGraph::readFromContiguousFile(const std::string &fileName) {
 
     graphFile.close();
 
-//    for(uint32_t source = 0; source < getNoVertices(); source++) {
-//        std::vector<std::vector<std::pair<uint32_t,uint32_t>>>  targetPerLabel;
-//        targetPerLabel.resize(getNoLabels());
-//        for (auto labelTarget : adj[source]) {
-//            targetPerLabel[labelTarget.first].push_back(labelTarget);
-//        }
-//        std::vector<std::pair<uint32_t,uint32_t>> sortedAdj;
-//        for(uint32_t labeltype = 0; labeltype < targetPerLabel.size(); labeltype++) {
-//            for(uint32_t target=0; target < targetPerLabel[labeltype].size(); target++) {
-//                sortedAdj.push_back(targetPerLabel[labeltype][target]);
-//            }
-//        }
-//        adj[source] = sortedAdj;
-//
-//        std::vector<std::vector<std::pair<uint32_t,uint32_t>>>  reversetargetPerLabel;
-//        reversetargetPerLabel.resize(getNoLabels());
-//        for (auto labelTarget : reverse_adj[source]) {
-//            reversetargetPerLabel[labelTarget.first].push_back(labelTarget);
-//        }
-//        std::vector<std::pair<uint32_t,uint32_t>> reversesortedAdj;
-//        for(uint32_t labeltype = 0; labeltype < reversetargetPerLabel.size(); labeltype++) {
-//            for(uint32_t target=0; target < reversetargetPerLabel[labeltype].size(); target++) {
-//                reversesortedAdj.push_back(reversetargetPerLabel[labeltype][target]);
-//            }
-//        }
-//        reverse_adj[source] = reversesortedAdj;
-//    }
+    //sort pairs
+    for(auto a : edge_pairs) {
+        std::sort(a.begin(),a.end());
+    }
+    for(auto a : edge_pairs_reverse) {
+        std::sort(a.begin(),a.end());
+    }
 }
