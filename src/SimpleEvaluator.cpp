@@ -53,6 +53,7 @@ std::vector<std::pair<uint32_t,uint32_t>> SimpleEvaluator::evaluateFaster(std::v
     auto left = edges(query[0], false);
     for(int i = 1; i < query.size(); i++) {
         left = join(left, edges(query[i], true));
+        std::sort(left.begin(),left.end());
     }
     return left;
 }
@@ -89,41 +90,20 @@ std::vector<std::pair<uint32_t,uint32_t>> SimpleEvaluator::join(std::vector<std:
     int right_key_next;
     int left_key_next;
 
-    while(left_key != left.size() && right_key != right.size()) {
-        if (left[left_key].first == right[right_key].first) {
-            if (!(std::find(std::begin(array), std::end(array),
-                            std::to_string(left[left_key].second) + "-" + std::to_string(right[right_key].second)) !=
-                  std::end(array))) {
-                array.emplace_back(std::to_string(left[left_key].second) + "-" + std::to_string(right[right_key].second));
-                join.emplace_back(std::make_pair(left[left_key].second, right[right_key].second));
-            }
-            right_key_next = right_key + 1;
+    while(left_key != left.size() && right_key != right.size()){
+        if(left[left_key].first == right[right_key].first) {
+            right_key_next = right_key;
             while(right_key_next != right.size() && (left[left_key].first == right[right_key_next].first)) {
-                if (!(std::find(std::begin(array), std::end(array),
-                                std::to_string(left[left_key].second) + "-" + std::to_string(right[right_key_next].second)) !=
-                      std::end(array))) {
+                if (!(std::find(std::begin(array), std::end(array), std::to_string(left[left_key].second) + "-" + std::to_string(right[right_key_next].second)) != std::end(array))) {
                     array.emplace_back(std::to_string(left[left_key].second) + "-" + std::to_string(right[right_key_next].second));
                     join.emplace_back(std::make_pair(left[left_key].second, right[right_key_next].second));
                 }
                 right_key_next++;
             }
-
-            left_key_next = left_key + 1;
-            while(left_key_next != left.size() && (left[left_key_next].first == right[right_key].first)) {
-                if (!(std::find(std::begin(array), std::end(array),
-                                std::to_string(left[left_key_next].second) + "-" + std::to_string(right[right_key].second)) !=
-                      std::end(array))) {
-                    array.emplace_back(std::to_string(left[left_key_next].second) + "-" + std::to_string(right[right_key].second));
-                    join.emplace_back(std::make_pair(left[left_key_next].second, right[right_key].second));
-                }
-                left_key_next++;
-            }
-
             left_key++;
-            right_key++;
         } else if(left[left_key].first < right[right_key].first) {
             left_key++;
-        }  else {
+        } else {
             right_key++;
         }
     }

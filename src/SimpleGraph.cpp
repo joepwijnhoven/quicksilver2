@@ -113,10 +113,11 @@ void SimpleGraph::readFromContiguousFile(const std::string &fileName) {
     graphFile.close();
 
     //sort pairs
-    for(auto a : edge_pairs) {
-        std::sort(a.begin(),a.end());
+    for(int i = 0; i < edge_pairs.size(); i++) {
+        std::sort(edge_pairs[i].begin(),edge_pairs[i].end());
     }
-    for(auto a : edge_pairs_reverse) {
-        std::sort(a.begin(),a.end());
+
+    for(int i = 0; i < edge_pairs_reverse.size(); i++) {
+        std::sort(edge_pairs_reverse[i].begin(),edge_pairs_reverse[i].end());
     }
 }
