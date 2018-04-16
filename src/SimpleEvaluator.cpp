@@ -50,12 +50,32 @@ std::vector<std::pair<uint32_t,uint32_t>> SimpleEvaluator::evaluateFaster(std::v
     if(query.size() == 1) {
         return edges(query[0], true);
     }
+    std::string q = query[0];
     auto left = edges(query[0], false);
     for(int i = 1; i < query.size(); i++) {
-        left = join(left, edges(query[i], true));
-        std::sort(left.begin(),left.end());
+//        if(GetFromCache(q + query[i]).size() != 0) {
+//            left = GetFromCache(q + query[i]);
+//        } else {
+            left = join(left, edges(query[i], true));
+            std::sort(left.begin(),left.end());
+//            InsertIntoCache(q + query[i], left);
+//        }
+
     }
     return left;
+}
+
+void SimpleEvaluator::InsertIntoCache(std::string query, std::vector<std::pair<uint32_t,uint32_t>> pairs) {
+    querycache.push_back(std::make_pair(query, pairs));
+}
+
+std::vector<std::pair<uint32_t,uint32_t>> SimpleEvaluator::GetFromCache(std::string query){
+    for(int i = 0; i < querycache.size(); i++) {
+        if(querycache[i].first == query){
+            return querycache[i].second;
+        }
+    }
+    return std::vector<std::pair<uint32_t,uint32_t>>();
 }
 
 std::vector<std::pair<uint32_t,uint32_t>> SimpleEvaluator::edges(std::string sub_query, bool right) {

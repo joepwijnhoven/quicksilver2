@@ -19,7 +19,7 @@ class SimpleEvaluator : public Evaluator {
     std::shared_ptr<SimpleEstimator> est;
 
 public:
-    std::vector<std::string> queryarray;
+    std::vector<std::pair<std::string,std::vector<std::pair<uint32_t,uint32_t>>>> querycache;
     explicit SimpleEvaluator(std::shared_ptr<SimpleGraph> &g);
     ~SimpleEvaluator() = default;
 
@@ -33,7 +33,8 @@ public:
 
     std::shared_ptr<SimpleGraph> evaluate_aux(RPQTree *q);
     static std::shared_ptr<SimpleGraph> project(uint32_t label, bool inverse, std::shared_ptr<SimpleGraph> &g, std::vector<std::vector<uint32_t>>  uniqueIN, std::vector<std::vector<uint32_t>>  uniqueOUT);
-
+    std::vector<std::pair<uint32_t,uint32_t>> GetFromCache(std::string query);
+    void InsertIntoCache(std::string query, std::vector<std::pair<uint32_t,uint32_t>> pairs);
     std::vector<std::string> TreeToString(RPQTree *q);
     static cardStat computeStats(std::vector<std::pair<uint32_t,uint32_t>> pairs);
 
