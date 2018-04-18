@@ -78,6 +78,16 @@ std::vector<std::pair<uint32_t,uint32_t>> SimpleEvaluator::GetFromCache(std::str
     return std::vector<std::pair<uint32_t,uint32_t>>();
 }
 
+std::vector<std::string> SimpleEvaluator::OptimalJoinOrdering(std::string query) {
+    std::vector<std::string> optimal_join_ordering(query.size());
+
+    for(int i = 2; i <= query.size(); i++) { // size of plan
+        for(int left = 1; left < i; left++) {
+            int right = i - left;
+        }
+    }
+
+}
 std::vector<std::pair<uint32_t,uint32_t>> SimpleEvaluator::edges(std::string sub_query, bool right) {
     std::regex directLabel(R"((\d+)\+)");
     std::regex inverseLabel(R"((\d+)\-)");
