@@ -35,9 +35,9 @@ cardStat SimpleEvaluator::computeStats(std::vector<std::pair<uint32_t,uint32_t>>
         uniqueout.push_back(pairs[i].second);
     }
 
-    sort(uniquein.begin(), uniquein.end());
+    std::sort(uniquein.begin(), uniquein.end());
     uniquein.erase(unique(uniquein.begin(), uniquein.end()), uniquein.end());
-    sort(uniqueout.begin(), uniqueout.end());
+    std::sort(uniqueout.begin(), uniqueout.end());
     uniqueout.erase(unique(uniqueout.begin(), uniqueout.end()), uniqueout.end());
 
     stats.noPaths = pairs.size();
