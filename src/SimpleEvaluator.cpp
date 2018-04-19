@@ -46,46 +46,59 @@ cardStat SimpleEvaluator::computeStats(std::vector<std::pair<uint32_t,uint32_t>>
     return stats;
 }
 
+bool SimpleEvaluator::singleQuery(std::string sub_query) {
+    int count = 0;
+    for(int i = 0; i < sub_query.size(); i++) {
+        if(sub_query[i] == '+' || sub_query[i] == '-') {
+            count++;
+        }
+    }
+    if(count == 1) {
+        return true;
+    } else {
+        return false;
+    }
+}
 
-
-std::vector<std::pair<uint32_t,uint32_t>> SimpleEvaluator::evaluateFaster(std::vector<std::string> query, std::vector<std::pair<int, int>> bestjoinorder) {
+std::vector<std::pair<uint32_t,uint32_t>> SimpleEvaluator::evaluateFaster(std::vector<std::string> query, std::vector<std::pair<std::string, std::string>> bestjoinorder) {
     if(query.size() == 1) {
         return edges(query[0], true);
     }
 
-    std::vector<std::pair<uint32_t,uint32_t>> prev;
+    std::map<std::string, std::vector<std::vector<std::pair<uint32_t,uint32_t>>>> prev_solutions;
+    std::vector<std::pair<uint32_t,uint32_t>> final_join;
     std::vector<std::pair<uint32_t,uint32_t>> left;
     std::vector<std::pair<uint32_t,uint32_t>> right;
 
     for(int i =0; i < bestjoinorder.size(); i++) {
         auto j = bestjoinorder[i];
-
-        if(j.first == -1) {
-            left = prev;
-            right = edges(query[j.second], true);
-        }
-        else
-        {
-            left = edges(query[j.first], false);
-            if(j.second == -1) {
-                right = prev;
-            }
-            else {
-                right = edges(query[j.second], true);
-            }
-        }
-
-        if(i < bestjoinorder.size() - 1) {
-            auto nextjoin = bestjoinorder[i+1];
-            if(nextjoin.first == -1) {
-                prev = join(left, right, false);
-            } else {
-                prev = join(left, right, true);
-            }
+        // create a join from base labels if needed else retrieve it from previous solutions.
+        if(singleQuery(j.first)) {
+            left = edges(j.first, false);
         } else {
-            prev = join(left, right, true);
+            left = prev_solutions[j.first][0];
+            // left solution needs to be reversed and sorted
+            for(int i = 0; i < left.size(); i++) {
+                uint32_t from = left[i].first;
+                left[i].first = left[i].second;
+                left[i].second = from;
+            }
+            std::sort(left.begin(),left.end());
         }
-        std::sort(prev.begin(),prev.end());
+        if(singleQuery(j.second)) {
+            right = edges(j.second, true);
+        } else {
+            right = prev_solutions[j.second][0];
+            // solution needs to be sorted
+            std::sort(right.begin(),right.end());
+        }
+        // if we arent yet at the final join
+        if(i < bestjoinorder.size() - 1) {
+            std::string total_query = j.first+j.second;
+            prev_solutions[total_query].emplace_back(join(left, right));
+        } else {
+            final_join = join(left, right);
+        }
     }
 
 //    std::string q = query[0];
@@ -99,7 +112,7 @@ std::vector<std::pair<uint32_t,uint32_t>> SimpleEvaluator::evaluateFaster(std::v
 //        InsertIntoCache(q + query[i], left);
 //    }
 //    q = q + query[i]
-    return prev;
+    return final_join;
 }
 
 void SimpleEvaluator::InsertIntoCache(std::string query, std::vector<std::pair<uint32_t,uint32_t>> pairs) {
@@ -115,10 +128,13 @@ std::vector<std::pair<uint32_t,uint32_t>> SimpleEvaluator::GetFromCache(std::str
     return std::vector<std::pair<uint32_t,uint32_t>>();
 }
 
-std::vector<std::pair<int, int>> SimpleEvaluator::OptimalJoinOrdering(std::vector<std::string> query) {
+void SimpleEvaluator::OptimalJoinOrdering(std::vector<std::string> query) {
     std::map<std::string, cardStat> sub_solutions;
+    std::map<std::string, std::vector<std::pair<std::string, std::string>>> final_solution;
     std::string left_subplan;
     std::string right_subplan;
+    std::string best_left_subplan;
+    std::string best_right_subplan;
     std::string total_query;
     cardStat total;
     cardStat left;
@@ -137,33 +153,49 @@ std::vector<std::pair<int, int>> SimpleEvaluator::OptimalJoinOrdering(std::vecto
                     right_subplan += query[m];
                 }
                 total_query = left_subplan + right_subplan;
-                if(left_subplan.size() == 2 && right_subplan.size() == 2) {
+                if(singleQuery(left_subplan) && singleQuery(right_subplan)) {
                     left = est->calculateCardStat(left_subplan);
                     right = est->calculateCardStat(right_subplan);
                     total = est->estimateBestJoin(left, right);
-                } else if(left_subplan.size() == 2) {
+                } else if(singleQuery(left_subplan)) {
                     left = est->calculateCardStat(left_subplan);
                     total = est->estimateBestJoin(left, sub_solutions[right_subplan]);
-                } else if(right_subplan.size() == 2) {
+                } else if(singleQuery(right_subplan)) {
                     right = est->calculateCardStat(right_subplan);
                     total = est->estimateBestJoin(sub_solutions[left_subplan], right);
-                } else if (left_subplan.size() != 2 && right_subplan.size() != 2) {
+                } else {
                     total = est->estimateBestJoin(sub_solutions[left_subplan], sub_solutions[right_subplan]);
                 }
                 if (total.noPaths < best_sub_solution.noPaths) {
                     best_sub_solution = total;
+                    best_left_subplan = left_subplan;
+                    best_right_subplan = right_subplan;
                 }
             }
             sub_solutions[total_query] = best_sub_solution;
+            final_solution[total_query].push_back(std::make_pair(best_left_subplan, best_right_subplan));
         }
     }
-    std::vector<std::pair<int, int>> optimal_join_ordering;
-    return optimal_join_ordering;
-
-
-
+    create_join_ordering(total_query, final_solution);
 }
-
+/**
+ * recursively step through our solution matrix from the algorithm above to create a vector of pairs that
+ * can be used by our join algorithm to create a solution
+ * @param sub_query sub query needing to be split up
+ * @param final_solution matrix that holds all the solutions
+ * @param optimal_join_ordering the resulting vector of pairs that can be used by our join
+ */
+void SimpleEvaluator::create_join_ordering(std::string sub_query, std::map<std::string, std::vector<std::pair<std::string, std::string>>> final_solution) {
+    std::string left_plan = final_solution[sub_query][0].first;
+    std::string right_plan = final_solution[sub_query][0].second;
+    if(!singleQuery(left_plan)) {
+        create_join_ordering(left_plan, final_solution);
+    }
+    if(!singleQuery(right_plan)) {
+        create_join_ordering(right_plan, final_solution);
+    }
+    optimal_join_ordering.emplace_back(std::make_pair(left_plan, right_plan));
+}
 /**
  * Function for returning edge_pairs of a label
  * @param sub_query, label string
@@ -196,10 +228,9 @@ std::vector<std::pair<uint32_t,uint32_t>> SimpleEvaluator::edges(std::string sub
  * Function for joining two labels
  * @param left, table on the left side
  * @param right, table on the right side
- * @param isRight, If result is a left table, we return the reverse edge list
  * @return
  */
-std::vector<std::pair<uint32_t,uint32_t>> SimpleEvaluator::join(std::vector<std::pair<uint32_t,uint32_t>> left, std::vector<std::pair<uint32_t,uint32_t>> right, bool isRight) {
+std::vector<std::pair<uint32_t,uint32_t>> SimpleEvaluator::join(std::vector<std::pair<uint32_t,uint32_t>> left, std::vector<std::pair<uint32_t,uint32_t>> right) {
     std::vector<std::pair<uint32_t,uint32_t>> join;
 
     std::vector<std::string> array;
@@ -214,11 +245,7 @@ std::vector<std::pair<uint32_t,uint32_t>> SimpleEvaluator::join(std::vector<std:
             while(right_key_next != right.size() && (left[left_key].first == right[right_key_next].first)) {
                 if (!(std::find(std::begin(array), std::end(array), std::to_string(left[left_key].second) + "-" + std::to_string(right[right_key_next].second)) != std::end(array))) {
                     array.emplace_back(std::to_string(left[left_key].second) + "-" + std::to_string(right[right_key_next].second));
-                    if(isRight) {
-                        join.emplace_back(std::make_pair(left[left_key].second, right[right_key_next].second));
-                    } else {
-                        join.emplace_back(std::make_pair(right[right_key_next].second, left[left_key].second));
-                    }
+                    join.emplace_back(std::make_pair(left[left_key].second, right[right_key_next].second));
                 }
                 right_key_next++;
             }
@@ -250,11 +277,10 @@ std::vector<std::string> SimpleEvaluator::TreeToString(RPQTree *query) {
 
 cardStat SimpleEvaluator::evaluate(RPQTree *query) {
     auto q = TreeToString(query);
-    std::vector<std::pair<int, int>> bestjoinorder = std::vector<std::pair<int, int>>();
-    bestjoinorder.push_back(std::make_pair(0,1));
-    bestjoinorder.push_back(std::make_pair(-1,2));
-    auto joins = evaluateFaster(q, bestjoinorder);
-    //auto sub_solutions = OptimalJoinOrdering(q);
-    auto joins = evaluateFaster(q);
+    optimal_join_ordering.clear();
+    OptimalJoinOrdering(q);
+//    bestjoinorder.push_back(std::make_pair(0,1));
+//    bestjoinorder.push_back(std::make_pair(-1,2));
+    auto joins = evaluateFaster(q, optimal_join_ordering);
     return SimpleEvaluator::computeStats(joins);
 }
