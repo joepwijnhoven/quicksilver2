@@ -48,30 +48,58 @@ cardStat SimpleEvaluator::computeStats(std::vector<std::pair<uint32_t,uint32_t>>
 
 
 
-std::vector<std::pair<uint32_t,uint32_t>> SimpleEvaluator::evaluateFaster(std::vector<std::string> query) {
+std::vector<std::pair<uint32_t,uint32_t>> SimpleEvaluator::evaluateFaster(std::vector<std::string> query, std::vector<std::pair<int, int>> bestjoinorder) {
     if(query.size() == 1) {
         return edges(query[0], true);
     }
-    std::string q = query[0];
-    auto left = edges(query[0], false);
-    for(int i = 1; i < query.size(); i++) {
-//        if(GetFromCache(q + query[i]).size() != 0) {
-//            left = GetFromCache(q + query[i]);
-//        } else {
-        if(i == query.size() - 1) {
-            left = join(left, edges(query[i], true), true);
-        } else {
-            left = join(left, edges(query[i], true), false);
+
+    std::vector<std::pair<uint32_t,uint32_t>> prev;
+    std::vector<std::pair<uint32_t,uint32_t>> left;
+    std::vector<std::pair<uint32_t,uint32_t>> right;
+
+    for(int i =0; i < bestjoinorder.size(); i++) {
+        auto j = bestjoinorder[i];
+
+        if(j.first == -1) {
+            left = prev;
+            right = edges(query[j.second], true);
         }
-        std::sort(left.begin(),left.end());
-//            std::sort(left.begin(), left.end(), [](auto &l, auto &r) {
-//                return l.second < r.second;
-//            });
-//            InsertIntoCache(q + query[i], left);
-//        }
-//        q = q + query[i]
+        else
+        {
+            left = edges(query[j.first], false);
+            if(j.second == -1) {
+                right = prev;
+            }
+            else {
+                right = edges(query[j.second], true);
+            }
+        }
+
+        if(i < bestjoinorder.size() - 1) {
+            auto nextjoin = bestjoinorder[i+1];
+            if(nextjoin.first == -1) {
+                prev = join(left, right, false);
+            } else {
+                prev = join(left, right, true);
+            }
+        } else {
+            prev = join(left, right, true);
+        }
+        std::sort(prev.begin(),prev.end());
     }
-    return left;
+
+//    std::string q = query[0];
+//    if(GetFromCache(q + query[i]).size() != 0) {
+//        left = GetFromCache(q + query[i]);
+//    } else {
+//
+//        std::sort(left.begin(), left.end(), [](auto &l, auto &r) {
+//            return l.second < r.second;
+//        });
+//        InsertIntoCache(q + query[i], left);
+//    }
+//    q = q + query[i]
+    return prev;
 }
 
 void SimpleEvaluator::InsertIntoCache(std::string query, std::vector<std::pair<uint32_t,uint32_t>> pairs) {
@@ -222,7 +250,11 @@ std::vector<std::string> SimpleEvaluator::TreeToString(RPQTree *query) {
 
 cardStat SimpleEvaluator::evaluate(RPQTree *query) {
     auto q = TreeToString(query);
-//auto sub_solutions = OptimalJoinOrdering(q);
+    std::vector<std::pair<int, int>> bestjoinorder = std::vector<std::pair<int, int>>();
+    bestjoinorder.push_back(std::make_pair(0,1));
+    bestjoinorder.push_back(std::make_pair(-1,2));
+    auto joins = evaluateFaster(q, bestjoinorder);
+    //auto sub_solutions = OptimalJoinOrdering(q);
     auto joins = evaluateFaster(q);
     return SimpleEvaluator::computeStats(joins);
 }

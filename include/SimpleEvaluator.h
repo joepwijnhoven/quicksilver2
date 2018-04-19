@@ -25,7 +25,7 @@ public:
 
     void prepare() override ;
     cardStat evaluate(RPQTree *query) override ;
-    std::vector<std::pair<uint32_t,uint32_t>> evaluateFaster(std::vector<std::string> query);
+    std::vector<std::pair<uint32_t,uint32_t>> evaluateFaster(std::vector<std::string> query, std::vector<std::pair<int, int>> bestjoinorder);
     std::vector<std::pair<uint32_t,uint32_t>> join(std::vector<std::pair<uint32_t,uint32_t>> left, std::vector<std::pair<uint32_t,uint32_t>> right, bool isRight);
     std::vector<std::pair<uint32_t,uint32_t>> edges(std::string sub_query, bool right);
     void attachEstimator(std::shared_ptr<SimpleEstimator> &e);
