@@ -46,6 +46,8 @@ cardStat SimpleEvaluator::computeStats(std::vector<std::pair<uint32_t,uint32_t>>
     return stats;
 }
 
+
+
 std::vector<std::pair<uint32_t,uint32_t>> SimpleEvaluator::evaluateFaster(std::vector<std::string> query) {
     if(query.size() == 1) {
         return edges(query[0], true);
@@ -56,8 +58,15 @@ std::vector<std::pair<uint32_t,uint32_t>> SimpleEvaluator::evaluateFaster(std::v
 //        if(GetFromCache(q + query[i]).size() != 0) {
 //            left = GetFromCache(q + query[i]);
 //        } else {
-            left = join(left, edges(query[i], true));
-            std::sort(left.begin(),left.end());
+        if(i == query.size() - 1) {
+            left = join(left, edges(query[i], true), true);
+        } else {
+            left = join(left, edges(query[i], true), false);
+        }
+        std::sort(left.begin(),left.end());
+//            std::sort(left.begin(), left.end(), [](auto &l, auto &r) {
+//                return l.second < r.second;
+//            });
 //            InsertIntoCache(q + query[i], left);
 //        }
 //        q = q + query[i]
@@ -88,6 +97,13 @@ std::vector<std::string> SimpleEvaluator::OptimalJoinOrdering(std::string query)
     }
 
 }
+
+/**
+ * Function for returning edge_pairs of a label
+ * @param sub_query, label string
+ * @param right, if it must be joined with a right label we return the reverse edge list.
+ * @return
+ */
 std::vector<std::pair<uint32_t,uint32_t>> SimpleEvaluator::edges(std::string sub_query, bool right) {
     std::regex directLabel(R"((\d+)\+)");
     std::regex inverseLabel(R"((\d+)\-)");
@@ -110,7 +126,14 @@ std::vector<std::pair<uint32_t,uint32_t>> SimpleEvaluator::edges(std::string sub
     }
 }
 
-std::vector<std::pair<uint32_t,uint32_t>> SimpleEvaluator::join(std::vector<std::pair<uint32_t,uint32_t>> left, std::vector<std::pair<uint32_t,uint32_t>> right) {
+/**
+ * Function for joining two labels
+ * @param left, table on the left side
+ * @param right, table on the right side
+ * @param isRight, If result is a left table, we return the reverse edge list
+ * @return
+ */
+std::vector<std::pair<uint32_t,uint32_t>> SimpleEvaluator::join(std::vector<std::pair<uint32_t,uint32_t>> left, std::vector<std::pair<uint32_t,uint32_t>> right, bool isRight) {
     std::vector<std::pair<uint32_t,uint32_t>> join;
 
     std::vector<std::string> array;
@@ -118,7 +141,6 @@ std::vector<std::pair<uint32_t,uint32_t>> SimpleEvaluator::join(std::vector<std:
     int left_key = 0;
     int right_key = 0;
     int right_key_next;
-    int left_key_next;
 
     while(left_key != left.size() && right_key != right.size()){
         if(left[left_key].first == right[right_key].first) {
@@ -126,7 +148,11 @@ std::vector<std::pair<uint32_t,uint32_t>> SimpleEvaluator::join(std::vector<std:
             while(right_key_next != right.size() && (left[left_key].first == right[right_key_next].first)) {
                 if (!(std::find(std::begin(array), std::end(array), std::to_string(left[left_key].second) + "-" + std::to_string(right[right_key_next].second)) != std::end(array))) {
                     array.emplace_back(std::to_string(left[left_key].second) + "-" + std::to_string(right[right_key_next].second));
-                    join.emplace_back(std::make_pair(left[left_key].second, right[right_key_next].second));
+                    if(isRight) {
+                        join.emplace_back(std::make_pair(left[left_key].second, right[right_key_next].second));
+                    } else {
+                        join.emplace_back(std::make_pair(right[right_key_next].second, left[left_key].second));
+                    }
                 }
                 right_key_next++;
             }
