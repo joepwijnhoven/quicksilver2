@@ -18,10 +18,13 @@ public:
     std::vector<uint32_t> totalAmount;
     explicit SimpleEstimator(std::shared_ptr<SimpleGraph> &g);
     ~SimpleEstimator() = default;
+    std::vector<int> OptimalJoinOrdering(cardStat left, cardStat right);
+    cardStat calculateCardStat(std::string sub_query);
+    cardStat estimate(RPQTree *q);
 
     void prepare() override ;
     std::vector<int> estimatePath(RPQTree *q);
-    cardStat estimate(RPQTree *q) override ;
+    cardStat estimateBestJoin(cardStat left, cardStat right);
 
 };
 

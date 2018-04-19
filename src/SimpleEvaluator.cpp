@@ -87,14 +87,52 @@ std::vector<std::pair<uint32_t,uint32_t>> SimpleEvaluator::GetFromCache(std::str
     return std::vector<std::pair<uint32_t,uint32_t>>();
 }
 
-std::vector<std::string> SimpleEvaluator::OptimalJoinOrdering(std::string query) {
-    std::vector<std::string> optimal_join_ordering(query.size());
+std::vector<std::pair<int, int>> SimpleEvaluator::OptimalJoinOrdering(std::vector<std::string> query) {
+    std::map<std::string, cardStat> sub_solutions;
+    std::string left_subplan;
+    std::string right_subplan;
+    std::string total_query;
+    cardStat total;
+    cardStat left;
+    cardStat right;
 
     for(int i = 2; i <= query.size(); i++) { // size of plan
-        for(int left = 1; left < i; left++) {
-            int right = i - left;
+        for(int j = 0; j <= query.size() - i; j++) { //position of
+            cardStat best_sub_solution = {1, std::numeric_limits<int>::max(), 1};
+            for(int k = j; k < j + i - 1; k++) {
+                left_subplan.clear();
+                right_subplan.clear();
+                for(int m = j; m <= k; m++) {
+                    left_subplan += query[m];
+                }
+                for(int m = k + 1; m < j + i; m++) {
+                    right_subplan += query[m];
+                }
+                total_query = left_subplan + right_subplan;
+                if(left_subplan.size() == 2 && right_subplan.size() == 2) {
+                    left = est->calculateCardStat(left_subplan);
+                    right = est->calculateCardStat(right_subplan);
+                    total = est->estimateBestJoin(left, right);
+                } else if(left_subplan.size() == 2) {
+                    left = est->calculateCardStat(left_subplan);
+                    total = est->estimateBestJoin(left, sub_solutions[right_subplan]);
+                } else if(right_subplan.size() == 2) {
+                    right = est->calculateCardStat(right_subplan);
+                    total = est->estimateBestJoin(sub_solutions[left_subplan], right);
+                } else if (left_subplan.size() != 2 && right_subplan.size() != 2) {
+                    total = est->estimateBestJoin(sub_solutions[left_subplan], sub_solutions[right_subplan]);
+                }
+                if (total.noPaths < best_sub_solution.noPaths) {
+                    best_sub_solution = total;
+                }
+            }
+            sub_solutions[total_query] = best_sub_solution;
         }
     }
+    std::vector<std::pair<int, int>> optimal_join_ordering;
+    return optimal_join_ordering;
+
+
 
 }
 
@@ -184,6 +222,7 @@ std::vector<std::string> SimpleEvaluator::TreeToString(RPQTree *query) {
 
 cardStat SimpleEvaluator::evaluate(RPQTree *query) {
     auto q = TreeToString(query);
+//auto sub_solutions = OptimalJoinOrdering(q);
     auto joins = evaluateFaster(q);
     return SimpleEvaluator::computeStats(joins);
 }

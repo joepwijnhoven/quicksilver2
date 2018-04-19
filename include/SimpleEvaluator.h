@@ -29,7 +29,7 @@ public:
     std::vector<std::pair<uint32_t,uint32_t>> join(std::vector<std::pair<uint32_t,uint32_t>> left, std::vector<std::pair<uint32_t,uint32_t>> right, bool isRight);
     std::vector<std::pair<uint32_t,uint32_t>> edges(std::string sub_query, bool right);
     void attachEstimator(std::shared_ptr<SimpleEstimator> &e);
-    std::vector<std::string> OptimalJoinOrdering(std::string query)
+    std::vector<std::pair<int, int>> OptimalJoinOrdering(std::vector<std::string> query);
 
     std::vector<std::pair<uint32_t,uint32_t>> GetFromCache(std::string query);
     void InsertIntoCache(std::string query, std::vector<std::pair<uint32_t,uint32_t>> pairs);

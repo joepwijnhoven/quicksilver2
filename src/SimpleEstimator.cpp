@@ -61,6 +61,36 @@ std::vector<int> SimpleEstimator::estimatePath(RPQTree *q) {
     return {};
 }
 
+std::vector<int> SimpleEstimator::OptimalJoinOrdering(cardStat left, cardStat right) {
+    std::vector<int> test {left.noOut, right.noIn, (int) std::min((left.noPaths * (((double)right.noPaths)/((double)right.noOut))),
+                                                                  right.noPaths * ((double)left.noPaths/(double)left.noIn))};
+    return test;
+}
+
+
+cardStat SimpleEstimator::calculateCardStat(std::string sub_query) {
+    cardStat sub_query_new;
+    std::smatch matches;
+    std::regex directLabel (R"((\d+)\+)");
+    std::regex inverseLabel (R"((\d+)\-)");
+    if(std::regex_search(sub_query, matches, directLabel)) {
+        auto label = (uint32_t) std::stoul(matches[1]);
+        sub_query_new = {static_cast<int>(uniqueIN[label].size()),  totalAmount[label], static_cast<int>(uniqueOUT[label].size()),};
+    } else if(std::regex_search(sub_query, matches, inverseLabel)) {
+        auto label = (uint32_t) std::stoul(matches[1]);
+        sub_query_new =  {static_cast<int>(uniqueOUT[label].size()), totalAmount[label], static_cast<int>(uniqueIN[label].size())};
+    }
+    return sub_query_new;
+}
+
+cardStat SimpleEstimator::estimateBestJoin(cardStat left, cardStat right) {
+    std::vector<int> joinStats = OptimalJoinOrdering(left, right);
+
+    joinStats[0] = std::min(joinStats[0], joinStats[2]);
+    joinStats[1] = std::min(joinStats[1], joinStats[2]);
+    return cardStat {joinStats[0],joinStats[2],joinStats[1]};
+}
+
 cardStat SimpleEstimator::estimate(RPQTree *q) {
     std::vector<int> testvar = estimatePath(q);
     testvar[0] = std::min(testvar[0], testvar[2]);
