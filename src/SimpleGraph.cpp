@@ -115,9 +115,12 @@ void SimpleGraph::readFromContiguousFile(const std::string &fileName) {
     //sort pairs
     for(int i = 0; i < edge_pairs.size(); i++) {
         std::sort(edge_pairs[i].begin(),edge_pairs[i].end());
+        edge_pairs[i].erase(unique(edge_pairs[i].begin(), edge_pairs[i].end()), edge_pairs[i].end());
     }
 
     for(int i = 0; i < edge_pairs_reverse.size(); i++) {
         std::sort(edge_pairs_reverse[i].begin(),edge_pairs_reverse[i].end());
+        edge_pairs_reverse[i].erase(unique(edge_pairs_reverse[i].begin(), edge_pairs_reverse[i].end()), edge_pairs_reverse[i].end());
     }
+
 }
