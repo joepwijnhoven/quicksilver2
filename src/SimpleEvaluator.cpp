@@ -95,6 +95,7 @@ std::vector<std::pair<uint32_t,uint32_t>> SimpleEvaluator::evaluateFaster(std::v
                 left[i].second = from;
             }
             std::sort(left.begin(),left.end());
+            left.erase(unique(left.begin(), left.end()), left.end());
         }
         if(singleQuery(j.second)) {
             right = edges(j.second, true);
@@ -102,6 +103,7 @@ std::vector<std::pair<uint32_t,uint32_t>> SimpleEvaluator::evaluateFaster(std::v
             right = prev_solutions[j.second][0];
             // solution needs to be sorted
             std::sort(right.begin(),right.end());
+            right.erase(unique(right.begin(), right.end()), right.end());
         }
         // if we arent yet at the final join
         if(i < bestjoinorder.size() - 1) {
@@ -260,10 +262,10 @@ std::vector<std::pair<uint32_t,uint32_t>> SimpleEvaluator::join(std::vector<std:
         if(left[left_key].first == right[right_key].first) {
             right_key_next = right_key;
             while(right_key_next != right.size() && (left[left_key].first == right[right_key_next].first)) {
-                if (!(std::find(std::begin(array), std::end(array), std::to_string(left[left_key].second) + "-" + std::to_string(right[right_key_next].second)) != std::end(array))) {
-                    array.emplace_back(std::to_string(left[left_key].second) + "-" + std::to_string(right[right_key_next].second));
+//                if (!(std::find(std::begin(array), std::end(array), std::to_string(left[left_key].second) + "-" + std::to_string(right[right_key_next].second)) != std::end(array))) {
+//                    array.emplace_back(std::to_string(left[left_key].second) + "-" + std::to_string(right[right_key_next].second));
                     join.emplace_back(std::make_pair(left[left_key].second, right[right_key_next].second));
-                }
+//                }
                 right_key_next++;
             }
             left_key++;
