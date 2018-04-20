@@ -45,7 +45,11 @@ cardStat SimpleEvaluator::computeStats(std::vector<std::pair<uint32_t,uint32_t>>
     stats.noOut = uniquein.size();
     return stats;
 }
-
+/**
+ * function to determine whether or not a query is one command such as 8+ or 1- or if is multiple commands such as 8+/1-
+ * @param sub_query part of a query in string format
+ * @return true if single, false if not.
+ */
 bool SimpleEvaluator::singleQuery(std::string sub_query) {
     int count = 0;
     for(int i = 0; i < sub_query.size(); i++) {
@@ -59,7 +63,14 @@ bool SimpleEvaluator::singleQuery(std::string sub_query) {
         return false;
     }
 }
-
+/**
+ * Here execute the query plan, for each step in the plan calling the join function and saving intermediate results
+ * to be used by later steps in the join order plan.
+ * @param query in vector of string format
+ * @param bestjoinorder The join ordering as find by the optimaljoinorder function. It is a vector of string pairs.
+ * each pair containing the left and right subplan of the join.
+ * @return The final result is returned as a table containing all the source and target nodes.
+ */
 std::vector<std::pair<uint32_t,uint32_t>> SimpleEvaluator::evaluateFaster(std::vector<std::string> query, std::vector<std::pair<std::string, std::string>> bestjoinorder) {
     if(query.size() == 1) {
         return edges(query[0], true);
@@ -128,6 +139,12 @@ std::vector<std::pair<uint32_t,uint32_t>> SimpleEvaluator::GetFromCache(std::str
     return std::vector<std::pair<uint32_t,uint32_t>>();
 }
 
+/**
+ * Using dynamic programming to find an optimal join ordering, we go exhaustively through all combinations of valid joins
+ * we estimate the costs of these joins and save the best order of joins with the appropriate subplans.
+ * afterwards we can go through the matrices of costs and subplans to construct an optimal join order.
+ * @param query the query in a vector of string format
+ */
 void SimpleEvaluator::OptimalJoinOrdering(std::vector<std::string> query) {
     std::map<std::string, cardStat> sub_solutions;
     std::map<std::string, std::vector<std::pair<std::string, std::string>>> final_solution;
@@ -228,7 +245,7 @@ std::vector<std::pair<uint32_t,uint32_t>> SimpleEvaluator::edges(std::string sub
  * Function for joining two labels
  * @param left, table on the left side
  * @param right, table on the right side
- * @return
+ * @return the join of the 2 input labels
  */
 std::vector<std::pair<uint32_t,uint32_t>> SimpleEvaluator::join(std::vector<std::pair<uint32_t,uint32_t>> left, std::vector<std::pair<uint32_t,uint32_t>> right) {
     std::vector<std::pair<uint32_t,uint32_t>> join;
@@ -259,6 +276,11 @@ std::vector<std::pair<uint32_t,uint32_t>> SimpleEvaluator::join(std::vector<std:
     return join;
 }
 
+/**
+ *
+ * @param query the query in RPQTree format
+ * @return the query in a vector of strings format
+ */
 std::vector<std::string> SimpleEvaluator::TreeToString(RPQTree *query) {
     if(query->isLeaf()) {
         std::vector<std::string> array;
@@ -275,12 +297,15 @@ std::vector<std::string> SimpleEvaluator::TreeToString(RPQTree *query) {
     }
 }
 
+/**
+ * Calls all appropriate functions to execute a query
+ * @param query in RPQTree format
+ * @return the required stats to be printed. 
+ */
 cardStat SimpleEvaluator::evaluate(RPQTree *query) {
     auto q = TreeToString(query);
     optimal_join_ordering.clear();
     OptimalJoinOrdering(q);
-//    bestjoinorder.push_back(std::make_pair(0,1));
-//    bestjoinorder.push_back(std::make_pair(-1,2));
     auto joins = evaluateFaster(q, optimal_join_ordering);
     return SimpleEvaluator::computeStats(joins);
 }
