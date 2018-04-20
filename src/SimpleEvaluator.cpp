@@ -300,7 +300,7 @@ std::vector<std::string> SimpleEvaluator::TreeToString(RPQTree *query) {
 /**
  * Calls all appropriate functions to execute a query
  * @param query in RPQTree format
- * @return the required stats to be printed. 
+ * @return the required stats to be printed.
  */
 cardStat SimpleEvaluator::evaluate(RPQTree *query) {
     auto q = TreeToString(query);
