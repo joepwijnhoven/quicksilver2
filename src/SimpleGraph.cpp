@@ -68,13 +68,8 @@ void SimpleGraph::setNoLabels(uint32_t noLabels) {
 }
 
 void SimpleGraph::addEdge(uint32_t from, uint32_t to, uint32_t edgeLabel) {
-    std::string edgenodes = std::to_string(edgeLabel) + "-" + std::to_string(from) + "-" + std::to_string(to);
-
-    //if (!(std::find(std::begin(array), std::end(array), edgenodes) != std::end(array))) {
-       // array.push_back(edgenodes);
-        edge_pairs[edgeLabel].emplace_back(std::make_pair(from, to));
-        edge_pairs_reverse[edgeLabel].emplace_back(std::make_pair(to, from));
-    //}
+    edge_pairs[edgeLabel].emplace_back(std::make_pair(from, to));
+    edge_pairs_reverse[edgeLabel].emplace_back(std::make_pair(to, from));
 }
 
 void SimpleGraph::readFromContiguousFile(const std::string &fileName) {
@@ -112,7 +107,7 @@ void SimpleGraph::readFromContiguousFile(const std::string &fileName) {
 
     graphFile.close();
 
-    //sort pairs
+    //sort pairs and remove duplicates
     for(int i = 0; i < edge_pairs.size(); i++) {
         std::sort(edge_pairs[i].begin(),edge_pairs[i].end());
         edge_pairs[i].erase(unique(edge_pairs[i].begin(), edge_pairs[i].end()), edge_pairs[i].end());
