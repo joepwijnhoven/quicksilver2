@@ -28,13 +28,6 @@ void SimpleEstimator::prepare() {
             uniqueOUT[label].push_back(graph->edge_pairs[label][i].second);
         }
     }
-
-    for(int i=0; i <  graph->getNoLabels(); i++) {
-        std::sort(uniqueIN[i].begin(),uniqueIN[i].end());
-        uniqueIN[i].erase(unique(uniqueIN[i].begin(), uniqueIN[i].end()), uniqueIN[i].end());
-        std::sort(uniqueOUT[i].begin(),uniqueOUT[i].end());
-        uniqueOUT[i].erase(unique(uniqueOUT[i].begin(), uniqueOUT[i].end()), uniqueOUT[i].end());
-    }
 }
 std::vector<int> SimpleEstimator::estimatePath(RPQTree *q) {
     if(q->isLeaf()){
