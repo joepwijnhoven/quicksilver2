@@ -95,7 +95,6 @@ std::vector<std::pair<uint32_t,uint32_t>> SimpleEvaluator::evaluateFaster(std::v
                 left[i].second = from;
             }
             std::sort(left.begin(),left.end());
-            left.erase(unique(left.begin(), left.end()), left.end());
         }
         if(singleQuery(j.second)) {
             right = edges(j.second, true);
@@ -103,7 +102,6 @@ std::vector<std::pair<uint32_t,uint32_t>> SimpleEvaluator::evaluateFaster(std::v
             right = prev_solutions[j.second][0];
             // solution needs to be sorted
             std::sort(right.begin(),right.end());
-            right.erase(unique(right.begin(), right.end()), right.end());
         }
         // if we arent yet at the final join
         if(i < bestjoinorder.size() - 1) {
@@ -275,6 +273,7 @@ std::vector<std::pair<uint32_t,uint32_t>> SimpleEvaluator::join(std::vector<std:
             right_key++;
         }
     }
+    join.erase(unique(join.begin(), join.end()), join.end());
     return join;
 }
 
