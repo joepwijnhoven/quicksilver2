@@ -24,12 +24,12 @@ void SimpleEstimator::prepare() {
     for(int label = 0; label < graph->getNoLabels(); label++) {
         for(int i = 0; i < graph->edge_pairs[label].size(); i++) {
             totalAmount[label] += 1;
-            if(!(std::find(std::begin(uniqueIN[label]), std::end(uniqueIN[label]), graph->edge_pairs[label][i].first) != std::end(uniqueIN[label]))) {
+            //if(!(std::find(std::begin(uniqueIN[label]), std::end(uniqueIN[label]), graph->edge_pairs[label][i].first) != std::end(uniqueIN[label]))) {
                 uniqueIN[label].push_back(graph->edge_pairs[label][i].first);
-            }
-            if(!(std::find(std::begin(uniqueOUT[label]), std::end(uniqueOUT[label]), graph->edge_pairs[label][i].second) != std::end(uniqueOUT[label]))) {
+            //}
+            //if(!(std::find(std::begin(uniqueOUT[label]), std::end(uniqueOUT[label]), graph->edge_pairs[label][i].second) != std::end(uniqueOUT[label]))) {
                 uniqueOUT[label].push_back(graph->edge_pairs[label][i].second);
-            }
+            //}
         }
     }
 }
